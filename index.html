@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kollektiv Fued</title>
+    <style>
+        body {
+            background: radial-gradient(circle, red, orange, purple);
+            background-size: 600% 600%;
+            animation: gradientAnimation 30s ease infinite;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        #question, #answers, #total-points {
+            font-size: 36px; /* Increase font size */
+            font-weight: bold;
+            color: white;
+            margin: 10px; /* Reduce margin */
+            padding: 10px; /* Reduce padding */
+            background-color: rgb(110, 153, 116);
+            display: block;
+            width: 90%;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        #answers {
+            font-size: 24px; /* Increase font size */
+        }
+
+        .answer {
+            background-color: rgb(46, 99, 46);
+            margin: 10px; /* Reduce margin */
+            padding: 10px; /* Reduce padding */
+            cursor: pointer;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .answer-number {
+            margin-right: 10px; /* Reduce margin */
+            font-size: 24px; /* Increase font size */
+        }
+
+        .answer-text {
+            visibility: hidden;
+            flex-grow: 1;
+            text-align: center;
+            font-size: 24px; /* Increase font size */
+        }
+
+        .answer-points {
+            visibility: hidden;
+            margin-left: 10px; /* Reduce margin */
+            font-size: 24px; /* Increase font size */
+        }
+
+        .answer.clicked .answer-text, .answer.clicked .answer-points {
+            visibility: visible;
+        }
+
+        #button-container {
+            display: flex;
+            justify-content: center;
+            width: 90%;
+            margin-top: 10px; /* Reduce margin */
+        }
+
+        button {
+            font-size: 48px; /* Increase font size to 2x larger */
+            padding: 5px 10px; /* Reduce padding for smaller margins */
+            margin: 0 5px; /* Reduce margin */
+            background: transparent;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a0491c;
+        }
+    </style>
+</head>
+<body>
+    <div id="question"></div>
+    <div id="answers"></div>
+    <div id="total-points">Total: 0%</div>
+    <div id="button-container">
+        <button id="prev">⬅️</button>
+        <button id="next">➡️</button>
+    </div>
+
+    <script>
+        const survey = [
+            {
+                question: 'Hva var din drømmejobb som barn?',
+                answers: [
+                    'Brannmann',
+                    'Bonde',
+                    'Dyrlege',
+                    'Fotballspiller',
+                    'Pilot eller flyvertinne',
+                    'Astronaut',
+                    'Snekker',
+                    'Kokk/konditor',
+                ],
+                points: [4, 3, 2, 2, 2, 2, 2, 2]
+            },
+            {
+                question: 'Hva er din favorittbok i Bibelen?',
+                answers: [
+                    'Johannes’ evangelium',
+                    'Apostlenes gjerninger',
+                    'Romerbrevet',
+                    'Job',
+                    'Hebreerne',
+                    'Ordspråkene',
+                    'Lukas’ evangelium',
+                ],
+                points: [4, 4, 3, 3, 2, 2, 2]
+            },
+            {
+                question: 'Hva er din favoritt resturant-kjede?',
+                answers: [
+                    'Egon',
+                    'IKEA',
+                    'Olivia',
+                    'Jensens Bøfhus',
+                    'McDonalds',
+                ],
+                points: [7, 2, 2, 2, 2]
+            },
+            {
+                question: 'Nevn en ting man får kjøpt på IKEA:',
+                answers: [
+                    'Mat',
+                    'Seng',
+                    'Hyller',
+                    'Planter',
+                    'Lys',
+                ],
+                points: [6, 5, 4, 2, 2]
+            },
+            {
+                question: 'Nevn en ting en mor spør sin sønn:',
+                answers: [
+                    'Husvask og rydding',
+                    'Stell og bekledning',
+                    'Hvordan går det?',
+                    'Har du husket?',
+                    'Hva vil du ha til middag?',
+                    'Kjærlighetslivet',
+                ],
+                points: [5, 4, 4, 3, 3, 2]
+            },
+            {
+                question: 'Nevn ett sted hvor det er kø:',
+                answers: [
+                    'Butikken',
+                    'IKEA',
+                    'Dametoalettet',
+                    'Flaskehalser i Betania',
+                    'Trafikken',
+                    'Flyplass',
+                ],
+                points: [6, 4, 4, 3, 2, 2]
+            },
+            {
+                question: 'Hvilket land ville du likt å bo i om du skulle flytte?',
+                answers: [
+                    'Japan',
+                    'Danmark',
+                    'USA',
+                    'Italia',
+                    'Australia',
+                    'Sveits',
+                    'Sverige',
+                    'Canada',
+                    'Storbritannia',
+                ],
+                points: [3, 3, 3, 2, 2, 2, 2, 2, 2]
+            },
+        ];
+
+        let currentQuestionIndex = 0;
+        let totalPoints = 0;
+
+        function displayQuestion(index) {
+            const questionElement = document.getElementById('question');
+            const answersElement = document.getElementById('answers');
+            const totalPointsElement = document.getElementById('total-points');
+
+            const totalPointsForQuestion = survey[index].points.reduce((a, b) => a + b, 0);
+
+            questionElement.textContent = survey[index].question;
+            answersElement.innerHTML = survey[index].answers.map((answer, i) => `
+                <div class="answer" onclick="addPoints(${survey[index].points[i]}, this, ${totalPointsForQuestion})">
+                    <div class="answer-number">${i + 1}.</div>
+                    <div class="answer-text">${answer}</div>
+                    <div class="answer-points">${Math.round((survey[index].points[i] / totalPointsForQuestion) * 100)}%</div>
+                </div>
+            `).join('');
+            totalPointsElement.textContent = `Total: ${Math.round((totalPoints / totalPointsForQuestion) * 100)} poeng`;
+        }
+
+        function addPoints(points, element, totalPointsForQuestion) {
+            if (!element.classList.contains('clicked')) {
+                totalPoints += points;
+                element.classList.add('clicked');
+                document.getElementById('total-points').textContent = `Total: ${Math.round((totalPoints / totalPointsForQuestion) * 100)} poeng`;
+            }
+        }
+
+        document.getElementById('prev').addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                totalPoints = 0; // Reset total points for the new question
+                displayQuestion(currentQuestionIndex);
+            }
+        });
+
+        document.getElementById('next').addEventListener('click', () => {
+            if (currentQuestionIndex < survey.length - 1) {
+                currentQuestionIndex++;
+                totalPoints = 0; // Reset total points for the new question
+                displayQuestion(currentQuestionIndex);
+            }
+        });
+
+        // Display the first question initially
+        displayQuestion(currentQuestionIndex);
+    </script>
+</body>
+</html>
